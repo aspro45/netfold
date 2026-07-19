@@ -21,3 +21,6 @@ deployments/*.local.json
 packages/contracts/lib/
 packages/contracts/lcov.info
 apps/web/public/contracts/
+
+.vercel
+.env*
