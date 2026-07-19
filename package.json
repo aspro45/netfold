@@ -1,0 +1,20 @@
+{
+  "name": "netfold-arc",
+  "version": "0.1.0",
+  "private": true,
+  "packageManager": "pnpm@11.9.0",
+  "scripts": {
+    "build": "pnpm -r build",
+    "typecheck": "pnpm -r typecheck",
+    "lint": "pnpm -r lint",
+    "test": "pnpm -r test",
+    "test:solver": "pnpm --filter @netfold/solver test",
+    "test:contracts": ".tools/foundry/forge.exe test --root packages/contracts",
+    "fmt:contracts": ".tools/foundry/forge.exe fmt --root packages/contracts",
+    "dev": "pnpm --filter @netfold/web dev",
+    "audit:deps": "pnpm audit --prod"
+  },
+  "devDependencies": {
+    "typescript": "5.8.3"
+  }
+}

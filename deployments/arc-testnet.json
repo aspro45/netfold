@@ -1,0 +1,88 @@
+{
+  "project": "NETFOLD",
+  "network": {
+    "name": "Arc Testnet",
+    "chainId": 5042002,
+    "rpc": "https://rpc.testnet.arc.network",
+    "explorer": "https://testnet.arcscan.app"
+  },
+  "status": "deployed",
+  "deployedAt": "2026-07-19T03:11:59Z",
+  "deployer": "0xf6d02F13D7BB5fC24aB6A3D662619641958A3Cf6",
+  "deploymentBlock": 52542421,
+  "contracts": {
+    "participantRegistry": "0xCab227dfaf88503Eb85a54FD5fc704fC21C534A0",
+    "obligationBook": "0xeE5fd63D152E1362499C332E8CcbF01134a68E0D",
+    "netfoldClearinghouse": "0xfd1bD9c625b617116FC65aA0386De5376Ed23ca0"
+  },
+  "transactions": [
+    {
+      "nonce": 39,
+      "action": "Deploy ParticipantRegistry",
+      "hash": "0x42211413861efd946b746f0b97274dd95487c230c0e0feeb3bb29e10de0a6c39",
+      "block": 52542421,
+      "gasUsed": 766486,
+      "explorer": "https://testnet.arcscan.app/tx/0x42211413861efd946b746f0b97274dd95487c230c0e0feeb3bb29e10de0a6c39"
+    },
+    {
+      "nonce": 40,
+      "action": "Deploy ObligationBook",
+      "hash": "0xab6bca5fc7d4c6f7eef9ff9d9c700a3f670f48a40914b8927285f31b87f9511a",
+      "block": 52542423,
+      "gasUsed": 2287031,
+      "explorer": "https://testnet.arcscan.app/tx/0xab6bca5fc7d4c6f7eef9ff9d9c700a3f670f48a40914b8927285f31b87f9511a"
+    },
+    {
+      "nonce": 41,
+      "action": "Deploy NetfoldClearinghouse",
+      "hash": "0x303d0d4800cb050599211a466ca5c159db0ab716bc9d549698d00ec758de431b",
+      "block": 52542423,
+      "gasUsed": 3102315,
+      "explorer": "https://testnet.arcscan.app/tx/0x303d0d4800cb050599211a466ca5c159db0ab716bc9d549698d00ec758de431b"
+    },
+    {
+      "nonce": 42,
+      "action": "Configure ObligationBook",
+      "hash": "0x8c1ceb485112bcbde54f2d0d54e90748285c03bfd58dbc2f9ef0f972c95006ed",
+      "block": 52542423,
+      "gasUsed": 47807,
+      "explorer": "https://testnet.arcscan.app/tx/0x8c1ceb485112bcbde54f2d0d54e90748285c03bfd58dbc2f9ef0f972c95006ed"
+    },
+    {
+      "nonce": 43,
+      "action": "Configure NetfoldClearinghouse",
+      "hash": "0xa003754e1d49edb452cda763288296d3d9a32092b6ca0767e261f2ea4abe21aa",
+      "block": 52542423,
+      "gasUsed": 47969,
+      "explorer": "https://testnet.arcscan.app/tx/0xa003754e1d49edb452cda763288296d3d9a32092b6ca0767e261f2ea4abe21aa"
+    }
+  ],
+  "gas": {
+    "effectiveGasPriceWei": "22000000000",
+    "totalGasUsed": 6251608,
+    "totalCostNativeUsdc": "0.137535376"
+  },
+  "compiler": {
+    "solidity": "0.8.30",
+    "optimizer": true,
+    "optimizerRuns": 10000,
+    "viaIR": true,
+    "evmVersion": "prague"
+  },
+  "arc": {
+    "usdc": "0x3600000000000000000000000000000000000000",
+    "eurc": "0x89B50855Aa3bE2F677cD6303Cec089B5F319D72a",
+    "memo": "0x5294E9927c3306DcBaDb03fe70b92e01cCede505",
+    "multicall3From": "0x522fAf9A91c41c443c66765030741e4AaCe147D0"
+  },
+  "abi": {
+    "participantRegistry": "deployments/abi/ParticipantRegistry.json",
+    "obligationBook": "deployments/abi/ObligationBook.json",
+    "netfoldClearinghouse": "deployments/abi/NetfoldClearinghouse.json"
+  },
+  "notes": [
+    "All five deployment and wiring transactions finalized successfully with status 1.",
+    "Onchain reads confirm bidirectional contract wiring, token addresses, and deployer admin roles.",
+    "The deployer private key is stored only in the ignored local .env file."
+  ]
+}

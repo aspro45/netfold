@@ -1,0 +1,26 @@
+{
+  "name": "@netfold/solver",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc -p tsconfig.json",
+    "lint": "tsc -p tsconfig.json",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@netfold/shared": "workspace:*",
+    "viem": "2.37.13",
+    "zod": "3.25.76"
+  },
+  "devDependencies": {
+    "@types/node": "22.15.30",
+    "fast-check": "4.3.0",
+    "tsx": "4.20.3",
+    "vitest": "3.2.4"
+  }
+}
