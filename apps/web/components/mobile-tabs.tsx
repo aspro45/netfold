@@ -1,6 +1,16 @@
 "use client";
 
-import { CircleDollarSign, Network, Rows3, WalletCards } from "lucide-react";
+import {
+  BookOpenText,
+  CircleDollarSign,
+  House,
+  Network,
+  Orbit,
+  Rows3,
+  WalletCards,
+} from "lucide-react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 import {
   type MobileTab,
   useInterfaceStore,
@@ -13,9 +23,34 @@ const tabs: { id: MobileTab; label: string; icon: typeof Network }[] = [
   { id: "wallet", label: "Wallet", icon: WalletCards },
 ];
 
+const routeTabs = [
+  { href: "/", label: "Overview", icon: House },
+  { href: "/clearing", label: "Floor", icon: Network },
+  { href: "/epochs", label: "Epochs", icon: Orbit },
+  { href: "/docs", label: "Docs", icon: BookOpenText },
+] as const;
+
 export function MobileTabs() {
+  const pathname = usePathname();
   const active = useInterfaceStore((state) => state.mobileTab);
   const setActive = useInterfaceStore((state) => state.setMobileTab);
+
+  if (pathname !== "/clearing") {
+    return (
+      <nav className="mobile-tabs mobile-route-tabs" aria-label="Mobile navigation">
+        {routeTabs.map(({ href, label, icon: Icon }) => {
+          const isActive =
+            href === "/" ? pathname === "/" : pathname.startsWith(href);
+          return (
+            <Link href={href} key={href} className={isActive ? "is-active" : ""}>
+              <Icon size={18} aria-hidden="true" />
+              <span>{label}</span>
+            </Link>
+          );
+        })}
+      </nav>
+    );
+  }
 
   return (
     <nav className="mobile-tabs" aria-label="Mobile workspace tabs">
@@ -33,4 +68,3 @@ export function MobileTabs() {
     </nav>
   );
 }
-

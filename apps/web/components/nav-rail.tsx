@@ -5,6 +5,7 @@ import {
   BookOpenText,
   CircleDollarSign,
   FileSignature,
+  House,
   LayoutDashboard,
   Orbit,
   Users,
@@ -13,7 +14,8 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 const links = [
-  { href: "/", label: "Clearing floor", icon: LayoutDashboard },
+  { href: "/", label: "Overview", icon: House },
+  { href: "/clearing", label: "Clearing floor", icon: LayoutDashboard },
   { href: "/obligations", label: "Obligations", icon: FileSignature },
   { href: "/epochs", label: "Epochs", icon: Orbit },
   { href: "/fund", label: "Fund & claim", icon: CircleDollarSign },

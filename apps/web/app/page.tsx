@@ -1,6 +1,5 @@
-import { ClearingFloor } from "@/components/clearing-floor";
+import { ProtocolOverview } from "@/components/protocol-overview";
 
 export default function HomePage() {
-  return <ClearingFloor />;
+  return <ProtocolOverview />;
 }
-

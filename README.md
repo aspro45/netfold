@@ -138,7 +138,9 @@ the target deployment. See [docs/arc-integration.md](docs/arc-integration.md).
 
 ## Application
 
-The first screen is the clearing floor:
+The first screen is a protocol overview that explains the netting model with
+the reference `265 USDC -> 35 USDC` settlement example. The clearing floor is
+available at `/clearing` and includes:
 
 - PixiJS obligation graph with gross and folded modes;
 - D3 force layout and GSAP state transition;

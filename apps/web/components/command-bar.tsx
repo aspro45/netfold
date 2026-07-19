@@ -19,7 +19,7 @@ export function CommandBar() {
 
   return (
     <header className="command-bar">
-      <Link href="/" className="wordmark" aria-label="NETFOLD clearing floor">
+      <Link href="/" className="wordmark" aria-label="NETFOLD protocol overview">
         <span className="wordmark-icon">
           <Waypoints aria-hidden="true" size={19} strokeWidth={2.2} />
         </span>
@@ -74,4 +74,3 @@ export function CommandBar() {
     </header>
   );
 }
-
