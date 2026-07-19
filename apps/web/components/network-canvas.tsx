@@ -51,6 +51,13 @@ interface RoutedPath {
   end: Point;
 }
 
+interface Bounds {
+  bottom: number;
+  left: number;
+  right: number;
+  top: number;
+}
+
 interface LabelView {
   container: Container;
   background: Graphics;
@@ -107,6 +114,76 @@ function pointOnQuadratic(path: RoutedPath, amount: number): Point {
   };
 }
 
+function quadraticNormal(path: RoutedPath, amount: number): Point {
+  const dx =
+    2 * (1 - amount) * (path.control.x - path.start.x) +
+    2 * amount * (path.end.x - path.control.x);
+  const dy =
+    2 * (1 - amount) * (path.control.y - path.start.y) +
+    2 * amount * (path.end.y - path.control.y);
+  const length = Math.max(Math.hypot(dx, dy), 1);
+  return { x: -dy / length, y: dx / length };
+}
+
+function expandBounds(bounds: Bounds, amount: number): Bounds {
+  return {
+    bottom: bounds.bottom + amount,
+    left: bounds.left - amount,
+    right: bounds.right + amount,
+    top: bounds.top - amount,
+  };
+}
+
+function overlapArea(first: Bounds, second: Bounds): number {
+  const width =
+    Math.min(first.right, second.right) - Math.max(first.left, second.left);
+  const height =
+    Math.min(first.bottom, second.bottom) - Math.max(first.top, second.top);
+  return Math.max(width, 0) * Math.max(height, 0);
+}
+
+function nodeExclusionBounds(node: CanvasNode): Bounds[] {
+  const x = node.x ?? 0;
+  const y = node.y ?? 0;
+  return [
+    { left: x - 52, right: x + 52, top: y - 50, bottom: y + 50 },
+    { left: x - 76, right: x + 76, top: y - 88, bottom: y - 43 },
+    { left: x - 62, right: x + 62, top: y + 37, bottom: y + 67 },
+  ];
+}
+
+function edgeExclusionBounds(
+  nodes: CanvasNode[],
+  sourceId: string,
+  targetId: string,
+): Bounds[] {
+  return nodes.flatMap((node) => {
+    const bounds = nodeExclusionBounds(node);
+    return node.id === sourceId || node.id === targetId
+      ? bounds.slice(1)
+      : bounds;
+  });
+}
+
+function pathObstacleScore(path: RoutedPath, obstacles: Bounds[]): number {
+  let score = 0;
+  for (let index = 1; index < 20; index += 1) {
+    const point = pointOnQuadratic(path, index / 20);
+    for (const obstacle of obstacles) {
+      const padded = expandBounds(obstacle, 5);
+      if (
+        point.x >= padded.left &&
+        point.x <= padded.right &&
+        point.y >= padded.top &&
+        point.y <= padded.bottom
+      ) {
+        score += 1;
+      }
+    }
+  }
+  return score;
+}
+
 function routePath(
   from: Point,
   to: Point,
@@ -142,6 +219,111 @@ function routePath(
       y: to.y - (endVectorY / endLength) * nodeRadius,
     },
   };
+}
+
+function routePathAroundNodes(
+  from: Point,
+  to: Point,
+  baseCurve: number,
+  nodeRadius: number,
+  obstacles: Bounds[],
+): RoutedPath {
+  const spread = Math.max(nodeRadius * 1.55, 52);
+  const curveCandidates = [
+    baseCurve,
+    baseCurve + spread,
+    baseCurve - spread,
+    baseCurve + spread * 2,
+    baseCurve - spread * 2,
+    baseCurve + spread * 3,
+    baseCurve - spread * 3,
+  ];
+  let bestPath = routePath(from, to, baseCurve, nodeRadius);
+  let bestScore = Number.POSITIVE_INFINITY;
+
+  for (const curve of curveCandidates) {
+    const path = routePath(from, to, curve, nodeRadius);
+    const collisionScore = pathObstacleScore(path, obstacles) * 10_000;
+    const curvePenalty = Math.abs(curve - baseCurve);
+    const score = collisionScore + curvePenalty;
+    if (score < bestScore) {
+      bestPath = path;
+      bestScore = score;
+    }
+    if (collisionScore === 0 && curvePenalty === 0) break;
+  }
+
+  return bestPath;
+}
+
+function placePathLabel(
+  label: LabelView,
+  path: RoutedPath,
+  obstacles: Bounds[],
+  occupied: Bounds[],
+  width: number,
+  height: number,
+  offsetX = 0,
+) {
+  const pathAmounts = [0.5, 0.4, 0.6, 0.31, 0.69, 0.23, 0.77];
+  const normalOffsets = [0, 18, -18, 34, -34, 50, -50];
+  const halfWidth = Math.max(label.container.width / 2, 28) + 4;
+  const halfHeight = Math.max(label.container.height / 2, 13) + 4;
+  let best = {
+    position: pointOnQuadratic(path, 0.5),
+    bounds: {
+      left: 0,
+      right: 0,
+      top: 0,
+      bottom: 0,
+    },
+    score: Number.POSITIVE_INFINITY,
+  };
+
+  for (const amount of pathAmounts) {
+    const point = pointOnQuadratic(path, amount);
+    const normal = quadraticNormal(path, amount);
+    for (const normalOffset of normalOffsets) {
+      const x = point.x + normal.x * normalOffset + offsetX;
+      const y = point.y + normal.y * normalOffset;
+      const bounds = {
+        left: x - halfWidth,
+        right: x + halfWidth,
+        top: y - halfHeight,
+        bottom: y + halfHeight,
+      };
+      const overflow =
+        Math.max(8 - bounds.left, 0) +
+        Math.max(bounds.right - (width - 8), 0) +
+        Math.max(72 - bounds.top, 0) +
+        Math.max(bounds.bottom - (height - 8), 0);
+      const obstacleOverlap = obstacles.reduce(
+        (total, obstacle) =>
+          total + overlapArea(bounds, expandBounds(obstacle, 4)),
+        0,
+      );
+      const labelOverlap = occupied.reduce(
+        (total, other) => total + overlapArea(bounds, expandBounds(other, 6)),
+        0,
+      );
+      const displacement =
+        Math.abs(amount - 0.5) * 35 + Math.abs(normalOffset) * 0.12;
+      const score =
+        overflow * 100_000 +
+        obstacleOverlap * 1_000 +
+        labelOverlap * 1_000 +
+        displacement;
+
+      if (score < best.score) {
+        best = { position: { x, y }, bounds, score };
+      }
+      if (score === 0) break;
+    }
+    if (best.score === 0) break;
+  }
+
+  label.container.position.set(best.position.x, best.position.y);
+  occupied.push(best.bounds);
 }
 
 function drawArrow(
@@ -566,6 +748,9 @@ export function NetworkCanvas() {
         const grossAlpha = 1 - animation.progress;
         const foldedAlpha = animation.progress;
         const curveUnit = Math.min(canvasWidth, canvasHeight);
+        const allNodeObstacles = nodes.flatMap(nodeExclusionBounds);
+        const grossLabelBounds: Bounds[] = [];
+        const residualLabelBounds: Bounds[] = [];
 
         links.forEach((link, index) => {
           const source = sourceNode(link);
@@ -574,11 +759,12 @@ export function NetworkCanvas() {
           const targetPoint = { x: target.x ?? 0, y: target.y ?? 0 };
           const curve =
             curveUnit * 0.085 * (curveDirection[link.id] ?? 0.45);
-          const path = routePath(
+          const path = routePathAroundNodes(
             sourcePoint,
             targetPoint,
             curve,
             nodeRadius,
+            edgeExclusionBounds(nodes, source.id, target.id),
           );
           drawArrow(
             grossLayer,
@@ -590,16 +776,20 @@ export function NetworkCanvas() {
 
           const label = grossLabelViews[index];
           if (label) {
-            const labelPoint = pointOnQuadratic(path, 0.5);
             const compactOffsetX =
               compactLayout && link.id === "3"
                 ? -42
                 : compactLayout && link.id === "5"
                   ? 42
                   : 0;
-            label.container.position.set(
-              labelPoint.x + compactOffsetX,
-              labelPoint.y,
+            placePathLabel(
+              label,
+              path,
+              allNodeObstacles,
+              grossLabelBounds,
+              canvasWidth,
+              canvasHeight,
+              compactOffsetX,
             );
             label.container.alpha = grossAlpha;
             label.container.scale.set(0.92 + grossAlpha * 0.08);
@@ -611,11 +801,12 @@ export function NetworkCanvas() {
         residuals.forEach((residual, index) => {
           const creditor = nodes.find((node) => node.id === residual.id);
           if (!debtor || !creditor) return;
-          const path = routePath(
+          const path = routePathAroundNodes(
             { x: debtor.x ?? 0, y: debtor.y ?? 0 },
             { x: creditor.x ?? 0, y: creditor.y ?? 0 },
             curveUnit * 0.07 * residual.curve,
             nodeRadius,
+            edgeExclusionBounds(nodes, debtor.id, creditor.id),
           );
           residualPaths.push(path);
           drawArrow(
@@ -627,8 +818,14 @@ export function NetworkCanvas() {
           );
           const label = residualLabelViews[index];
           if (label) {
-            const labelPoint = pointOnQuadratic(path, 0.5);
-            label.container.position.set(labelPoint.x, labelPoint.y);
+            placePathLabel(
+              label,
+              path,
+              allNodeObstacles,
+              residualLabelBounds,
+              canvasWidth,
+              canvasHeight,
+            );
             label.container.alpha = foldedAlpha;
             label.container.scale.set(0.84 + foldedAlpha * 0.16);
           }
